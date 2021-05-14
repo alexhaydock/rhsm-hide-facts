@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# hidefacts.py
+# hidefacts.py (v1.0 - 2021-05-14)
 # ---
 #
 # A script to mask certain system facts from being
