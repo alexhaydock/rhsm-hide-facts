@@ -31,8 +31,6 @@
       vars:
         new_item: "{ '{{ item.key }}': 'confidential' }"
       with_dict: "{{ rhsm_facts }}"
-    - debug:
-        msg: "{{ rhsm_facts }}"
 
     - name: Print hidden facts during Ansible run
       debug:
