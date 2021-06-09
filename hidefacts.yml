@@ -1,0 +1,55 @@
+---
+- name: Ansible Playbook to Hide System Facts from RHSM
+  hosts: all
+  become: false
+  gather_facts: false
+
+  tasks:
+    - name: Refresh subscription-manager to make sure we have the latest facts written in the facts.json file we're going to use
+      become: true
+      command: subscription-manager facts --update
+      tags:
+        - skip_ansible_lint
+
+    - name: Collect facts from remote system
+      become: true
+      slurp:
+        src: /var/lib/rhsm/facts/facts.json
+      register: slurped_facts
+
+    - name: Parse JSON facts into Ansible dictionary
+      set_fact:
+        rhsm_facts: "{{ slurped_facts['content'] | b64decode | from_json }}"
+
+    - name: Filter the dictionary just to include keys related to our network setup
+      set_fact:
+        rhsm_facts: '{{ rhsm_facts | dict2items | selectattr("key", "contains", "net") | list | items2dict }}'
+
+    - name: Replace the value of each key with "confidential"
+      set_fact:
+        rhsm_facts: "{{ rhsm_facts | combine(new_item, recursive=true) }}"
+      vars:
+        new_item: "{ '{{ item.key }}': 'confidential' }"
+      with_dict: "{{ rhsm_facts }}"
+    - debug:
+        msg: "{{ rhsm_facts }}"
+
+    - name: Print hidden facts during Ansible run
+      debug:
+        msg: '{{ rhsm_facts | to_json }}'
+
+    - name: Write hidden facts to file
+      become: true
+      copy:
+        content: '{{ rhsm_facts | to_json }}'
+        dest: /etc/rhsm/facts/confidential.facts
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Refresh subscription-manager to overwrite the Red Hat Customer Portal page for this host with our new facts
+      become: true
+      command: subscription-manager facts --update
+      tags:
+        - skip_ansible_lint
+...

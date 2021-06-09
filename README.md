@@ -1,5 +1,7 @@
 # rhsm-hide-facts
 
+ [![pipeline status](https://gitlab.com/alexhaydock/rhsm-hide-facts/badges/master/pipeline.svg)](https://gitlab.com/alexhaydock/rhsm-hide-facts/-/commits/master) 
+
 A tool to generate a custom fact override list for Red Hat Enterprise Linux systems, to help hide your confidential system information from RHSM.
 
 This will blank out hostname and network information of your systems in the Red Hat Customer Portal. Currently it does not hide other information and I am assessing whether this can be done without any implications for RHEL licensing and auditing.
@@ -8,7 +10,13 @@ This tool is designed to be run directly on the system which needs to have its v
 
 You can see an example `confidential.facts` override file in this directory as `confidential.facts.example`. You could take this file and adapt it to your own environment manually rather than using the script below, but it's unlikely to be a perfect fit for your systems.
 
-## Usage
+## Usage (Ansible Version)
+You can create an Ansible Inventory in this directory named `inventory.ini` and run the playbook against remote hosts over SSH with something like the following:
+```
+ansible-playbook -i inventory.ini --ask-pass --ask-become-pass hidefacts.yml
+```
+
+## Usage (Python Version)
 
 Make sure the system facts are up-to-date so the script can operate on all the relevant key/value pairs
 ```
@@ -31,5 +39,6 @@ Update the facts on RHSM
 sudo subscription-manager facts --update
 ```
 
+## Validation
 Check your fact values by inspecting the systems on
 https://access.redhat.com/management/systems/
